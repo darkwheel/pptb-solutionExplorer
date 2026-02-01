@@ -29,7 +29,6 @@
         "iconUrl": "https://raw.githubusercontent.com/darkwheel/pptb-solutionExplorer/refs/heads/main/icon.png",
         "readmeUrl": "https://raw.githubusercontent.com/darkwheel/pptb-solutionExplorer/refs/heads/main/README.md"
     },
-    "features": {},
     "scripts": {
         "build": "tsc && npm run copy-html && npm run copy-css",
         "copy-html": "shx cp src/index.html dist/",
