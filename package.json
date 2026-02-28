@@ -1,6 +1,6 @@
 {
     "name": "@darkwheel/pptb-solution-explorer",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "displayName": "Solution Explorer",
     "description": "A comprehensive tool to explore and manage Dataverse solutions with detailed metadata for administrators",
     "repository": {
@@ -23,6 +23,7 @@
         "deployment"
     ],
     "license": "MIT",
+    "icon": "icon/icon.svg",
     "configurations": {
         "repository": "https://github.com/darkwheel/pptb-solutionExplorer",
         "website": "https://github.com/darkwheel/pptb-solutionExplorer",
@@ -30,9 +31,11 @@
         "readmeUrl": "https://raw.githubusercontent.com/darkwheel/pptb-solutionExplorer/refs/heads/main/README.md"
     },
     "scripts": {
-        "build": "tsc && npm run copy-html && npm run copy-css",
+        "build": "tsc && npm run copy-html && npm run copy-css && npm run copy-icon",
         "copy-html": "shx cp src/index.html dist/",
         "copy-css": "shx cp src/styles.css dist/",
+        "copy-icon": "shx cp -r icon/ dist/icon",
+        "finalize-package": "npm shrinkwrap",
         "watch": "tsc --watch"
     },
     "devDependencies": {
