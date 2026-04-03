@@ -27,7 +27,6 @@
     "configurations": {
         "repository": "https://github.com/darkwheel/pptb-solutionExplorer",
         "website": "https://github.com/darkwheel/pptb-solutionExplorer",
-        "iconUrl": "https://raw.githubusercontent.com/darkwheel/pptb-solutionExplorer/refs/heads/main/icon.png",
         "readmeUrl": "https://raw.githubusercontent.com/darkwheel/pptb-solutionExplorer/refs/heads/main/README.md"
     },
     "scripts": {
