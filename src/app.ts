@@ -19,6 +19,24 @@ let selectedSolutionId: string | null = null;
 let currentLimit: string = '100';
 
 /**
+ * Show the local loading overlay (replaces deprecated toolbox.utils.showLoading)
+ */
+function showLoading(message: string) {
+    const overlay = document.getElementById('loading-overlay');
+    const messageEl = document.getElementById('loading-message');
+    if (messageEl) messageEl.textContent = message;
+    if (overlay) overlay.style.display = 'flex';
+}
+
+/**
+ * Hide the local loading overlay (replaces deprecated toolbox.utils.hideLoading)
+ */
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+/**
  * Initialize the application
  */
 async function initialize() {
@@ -136,7 +154,7 @@ async function loadSolutions() {
         log('Loading solutions...', 'info');
         
         // Show loading
-        await toolbox.utils.showLoading('Loading solutions...');
+        showLoading('Loading solutions...');
         
         // FetchXML to get solutions with publisher information (dynamically set top value)
         const topAttribute = currentLimit === 'all' ? '' : `top="${currentLimit}"`;
@@ -202,7 +220,7 @@ async function loadSolutions() {
             duration: 5000
         });
     } finally {
-        await toolbox.utils.hideLoading();
+        hideLoading();
         const loadBtn = document.getElementById('load-solutions-btn') as HTMLButtonElement;
         if (loadBtn) loadBtn.disabled = false;
     }
