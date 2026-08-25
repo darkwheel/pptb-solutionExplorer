@@ -19,21 +19,39 @@ let selectedSolutionId: string | null = null;
 let currentLimit: string = '100';
 
 /**
+ * Show the local loading overlay (replaces deprecated toolbox.utils.showLoading)
+ */
+function showLoading(message: string) {
+    const overlay = document.getElementById('loading-overlay');
+    const messageEl = document.getElementById('loading-message');
+    if (messageEl) messageEl.textContent = message;
+    if (overlay) overlay.style.display = 'flex';
+}
+
+/**
+ * Hide the local loading overlay (replaces deprecated toolbox.utils.hideLoading)
+ */
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+/**
  * Initialize the application
  */
 async function initialize() {
     log('Solution Explorer initialized', 'info');
-    
+
     try {
         // Check connection
         await refreshConnection();
-        
+
         // Setup event handlers
         setupEventHandlers();
-        
+
         // Subscribe to events
         subscribeToEvents();
-        
+
         log('Tool initialized successfully', 'success');
     } catch (error) {
         log(`Initialization error: ${(error as Error).message}`, 'error');
@@ -52,7 +70,7 @@ async function initialize() {
 async function refreshConnection() {
     try {
         currentConnection = await toolbox.connections.getActiveConnection();
-        
+
         // Update page title with connection name
         const titleElement = document.getElementById('page-title');
         if (titleElement) {
@@ -93,21 +111,21 @@ function subscribeToEvents() {
 function setupEventHandlers() {
     // Load solutions button
     document.getElementById('load-solutions-btn')?.addEventListener('click', loadSolutions);
-    
+
     // Refresh button
     document.getElementById('refresh-btn')?.addEventListener('click', loadSolutions);
-    
+
     // Clear log button
     document.getElementById('clear-log-btn')?.addEventListener('click', clearLog);
-    
+
     // Search input
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
     searchInput?.addEventListener('input', applyFilters);
-    
+
     // Filter selects
     document.getElementById('type-filter')?.addEventListener('change', applyFilters);
     document.getElementById('visibility-filter')?.addEventListener('change', applyFilters);
-    
+
     // Limit filter - triggers reload
     document.getElementById('limit-filter')?.addEventListener('change', (e) => {
         currentLimit = (e.target as HTMLSelectElement).value;
@@ -128,16 +146,16 @@ async function loadSolutions() {
         });
         return;
     }
-    
+
     try {
         const loadBtn = document.getElementById('load-solutions-btn') as HTMLButtonElement;
         if (loadBtn) loadBtn.disabled = true;
-        
+
         log('Loading solutions...', 'info');
-        
+
         // Show loading
-        await toolbox.utils.showLoading('Loading solutions...');
-        
+        showLoading('Loading solutions...');
+
         // FetchXML to get solutions with publisher information (dynamically set top value)
         const topAttribute = currentLimit === 'all' ? '' : `top="${currentLimit}"`;
         const fetchXml = `
@@ -173,26 +191,26 @@ async function loadSolutions() {
         <order attribute="installedon" descending="true" />
     </entity>
 </fetch>`;
-        
+
         const result = await dataverse.fetchXmlQuery(fetchXml);
         allSolutions = result.value;
-        
+
         log(`Loaded ${allSolutions.length} solution(s)`, 'success');
-        
+
         // Apply filters
         applyFilters();
-        
+
         // Show solutions section
         const solutionsSection = document.getElementById('solutions-section');
         if (solutionsSection) solutionsSection.style.display = 'block';
-        
+
         await toolbox.utils.showNotification({
             title: 'Solutions Loaded',
             body: `Successfully loaded ${allSolutions.length} solution(s)`,
             type: 'success',
             duration: 3000
         });
-        
+
     } catch (error) {
         log(`Error loading solutions: ${(error as Error).message}`, 'error');
         await toolbox.utils.showNotification({
@@ -202,7 +220,7 @@ async function loadSolutions() {
             duration: 5000
         });
     } finally {
-        await toolbox.utils.hideLoading();
+        hideLoading();
         const loadBtn = document.getElementById('load-solutions-btn') as HTMLButtonElement;
         if (loadBtn) loadBtn.disabled = false;
     }
@@ -215,31 +233,31 @@ function applyFilters() {
     const searchInput = document.getElementById('search-input') as HTMLInputElement;
     const typeFilter = document.getElementById('type-filter') as HTMLSelectElement;
     const visibilityFilter = document.getElementById('visibility-filter') as HTMLSelectElement;
-    
+
     const searchTerm = searchInput?.value.toLowerCase() || '';
     const typeValue = typeFilter?.value || 'all';
     const visibilityValue = visibilityFilter?.value || 'all';
-    
+
     filteredSolutions = allSolutions.filter(solution => {
         // Search filter
-        const matchesSearch = !searchTerm || 
+        const matchesSearch = !searchTerm ||
             (solution.friendlyname || '').toLowerCase().includes(searchTerm) ||
             (solution.uniquename || '').toLowerCase().includes(searchTerm) ||
             (solution['publisher.friendlyname'] || '').toLowerCase().includes(searchTerm);
-        
+
         // Type filter
         const matchesType = typeValue === 'all' ||
             (typeValue === 'managed' && solution.ismanaged) ||
             (typeValue === 'unmanaged' && !solution.ismanaged);
-        
+
         // Visibility filter
         const matchesVisibility = visibilityValue === 'all' ||
             (visibilityValue === 'visible' && solution.isvisible) ||
             (visibilityValue === 'hidden' && !solution.isvisible);
-        
+
         return matchesSearch && matchesType && matchesVisibility;
     });
-    
+
     displaySolutions();
 }
 
@@ -249,23 +267,23 @@ function applyFilters() {
 function displaySolutions() {
     const listDiv = document.getElementById('solutions-list');
     const countDiv = document.getElementById('solutions-count');
-    
+
     if (!listDiv) return;
-    
+
     if (countDiv) {
         countDiv.textContent = `${filteredSolutions.length} solution(s) ${filteredSolutions.length !== allSolutions.length ? `(filtered from ${allSolutions.length})` : ''}`;
     }
-    
+
     if (filteredSolutions.length === 0) {
         listDiv.innerHTML = '<div class="empty-message">No solutions found matching your criteria</div>';
         return;
     }
-    
+
     listDiv.innerHTML = filteredSolutions.map(solution => {
         const isManaged = solution.ismanaged;
         const typeLabel = isManaged ? 'Managed' : 'Unmanaged';
         const typeClass = isManaged ? 'managed' : 'unmanaged';
-        
+
         return `
             <div class="solution-card ${typeClass}" data-solutionid="${solution.solutionid}">
                 <div class="solution-header">
@@ -280,7 +298,7 @@ function displaySolutions() {
             </div>
         `;
     }).join('');
-    
+
     // Add click handlers
     document.querySelectorAll('.solution-card').forEach(card => {
         card.addEventListener('click', () => {
@@ -300,7 +318,7 @@ function displaySolutions() {
  */
 async function selectSolution(solutionId: string, solutionData: any) {
     selectedSolutionId = solutionId;
-    
+
     // Update selected state
     document.querySelectorAll('.solution-card').forEach(card => {
         card.classList.remove('selected');
@@ -308,25 +326,25 @@ async function selectSolution(solutionId: string, solutionData: any) {
             card.classList.add('selected');
         }
     });
-    
+
     const detailsPanel = document.getElementById('solution-details-panel');
     if (!detailsPanel) return;
-    
+
     // Show loading state
     detailsPanel.innerHTML = '<div class="loading-indicator">Loading solution details...</div>';
-    
+
     try {
         // Get component count
         const componentCount = await getSolutionComponentCount(solutionId);
-        
+
         // Get deployment history
         const deploymentHistory = await getSolutionDeploymentHistory(solutionId);
-        
+
         // Display details
         displaySolutionDetails(solutionData, componentCount, deploymentHistory);
-        
+
         log(`Selected solution: ${solutionData.friendlyname}`, 'info');
-        
+
     } catch (error) {
         log(`Error loading solution details: ${(error as Error).message}`, 'error');
         detailsPanel.innerHTML = `<div class="empty-state"><p>Error loading details: ${(error as Error).message}</p></div>`;
@@ -347,7 +365,7 @@ async function getSolutionComponentCount(solutionId: string): Promise<number> {
         </filter>
     </entity>
 </fetch>`;
-        
+
         const result = await dataverse.fetchXmlQuery(fetchXml);
         return parseInt((result.value[0]?.count as string) || '0', 10);
     } catch (error) {
@@ -378,7 +396,7 @@ async function getSolutionDeploymentHistory(solutionId: string): Promise<any[]> 
         <order attribute="completedon" descending="true" />
     </entity>
 </fetch>`;
-        
+
         const result = await dataverse.fetchXmlQuery(fetchXml);
         return result.value || [];
     } catch (error) {
@@ -393,11 +411,11 @@ async function getSolutionDeploymentHistory(solutionId: string): Promise<any[]> 
 function displaySolutionDetails(solution: any, componentCount: number, deploymentHistory: any[] = []) {
     const detailsPanel = document.getElementById('solution-details-panel');
     if (!detailsPanel) return;
-    
+
     const isManaged = solution.ismanaged;
     const typeLabel = isManaged ? 'Managed' : 'Unmanaged';
     const typeClass = isManaged ? 'managed' : 'unmanaged';
-    
+
     detailsPanel.innerHTML = `
         <div class="solution-details">
             <div class="details-header">
@@ -515,12 +533,12 @@ function displaySolutionDetails(solution: any, componentCount: number, deploymen
                 <h4>Deployment History</h4>
                 <div class="deployment-history">
                     ${deploymentHistory.map((deployment: any, index: number) => {
-                        const completedOn = deployment.completedon ? formatDateTime(deployment.completedon) : 'N/A';
-                        const startedOn = deployment.startedon ? formatDateTime(deployment.startedon) : 'N/A';
-                        const deployedBy = escapeHtml(deployment['_createdby_value@OData.Community.Display.V1.FormattedValue'] || 'System');
-                        const progress = deployment.progress !== null && deployment.progress !== undefined ? Math.round(deployment.progress) : 100;
-                        
-                        return `
+        const completedOn = deployment.completedon ? formatDateTime(deployment.completedon) : 'N/A';
+        const startedOn = deployment.startedon ? formatDateTime(deployment.startedon) : 'N/A';
+        const deployedBy = escapeHtml(deployment['_createdby_value@OData.Community.Display.V1.FormattedValue'] || 'System');
+        const progress = deployment.progress !== null && deployment.progress !== undefined ? Math.round(deployment.progress) : 100;
+
+        return `
                         <div class="deployment-item">
                             <div class="deployment-header">
                                 <div class="deployment-number">#${index + 1}</div>
@@ -542,7 +560,7 @@ function displaySolutionDetails(solution: any, componentCount: number, deploymen
                             </div>
                         </div>
                         `;
-                    }).join('')}
+    }).join('')}
                 </div>
             </div>
             ` : ''}
@@ -625,7 +643,7 @@ function escapeHtml(text: string): string {
 function log(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') {
     const logDiv = document.getElementById('event-log');
     if (!logDiv) return;
-    
+
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = document.createElement('div');
     logEntry.className = `log-entry ${type}`;
@@ -633,14 +651,14 @@ function log(message: string, type: 'info' | 'success' | 'warning' | 'error' = '
         <span class="log-timestamp">[${timestamp}]</span>
         <span>${message}</span>
     `;
-    
+
     logDiv.insertBefore(logEntry, logDiv.firstChild);
-    
+
     // Keep only last 50 entries
     while (logDiv.children.length > 50) {
         logDiv.removeChild(logDiv.lastChild!);
     }
-    
+
     console.log(`[${type.toUpperCase()}] ${message}`);
 }
 
