@@ -1,6 +1,6 @@
 {
     "name": "@darkwheel/pptb-solution-explorer",
-    "version": "0.2.6",
+    "version": "0.2.7",
     "displayName": "Solution Explorer",
     "description": "A comprehensive tool to explore and manage Dataverse solutions with detailed metadata for administrators",
     "repository": {
