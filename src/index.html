@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solution Explorer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
         <div class="spinner"></div>
@@ -23,12 +25,8 @@
             <div class="filter-controls">
                 <div class="filter-group">
                     <label for="search-input">Search:</label>
-                    <input 
-                        type="text" 
-                        id="search-input" 
-                        class="search-input" 
-                        placeholder="Search by solution name, unique name, or publisher..."
-                    />
+                    <input type="text" id="search-input" class="search-input"
+                        placeholder="Search by solution name, unique name, or publisher..." />
                 </div>
                 <div class="filter-group">
                     <label for="type-filter">Type:</label>
@@ -67,7 +65,7 @@
         <section class="card" id="solutions-section" style="display: none;">
             <h2>Solutions</h2>
             <div id="solutions-count" class="solutions-count"></div>
-            
+
             <div class="split-view">
                 <div class="left-panel">
                     <div id="solutions-list" class="solutions-list"></div>
@@ -92,4 +90,5 @@
 
     <script type="module" src="app.js"></script>
 </body>
+
 </html>
